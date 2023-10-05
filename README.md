@@ -28,6 +28,9 @@ mvn -v
 
 - `src/`: Contiene il codice sorgente dell'applicazione.
 - `pom.xml`: Il file di configurazione di Maven per il progetto.
+- `.gitignore`: Il file di configurazione per filtrare il caricamento dei file sul repository.
+- `LICENSE.txt`: La licenza per progetti open source.
+- `README.md`: Il file di guida al progetto.
 
 ## Funzionalità Principali
 
