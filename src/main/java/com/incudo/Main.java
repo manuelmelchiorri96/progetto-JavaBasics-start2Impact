@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -24,6 +25,8 @@ public class Main {
                 ConfigurazioneFile.delimitatore);
         List<Utente> utenti = utenteService.listaUtenti(ConfigurazioneFile.filePathUtenti,
                 ConfigurazioneFile.delimitatore);
+
+
 
 
         Scanner scanner = new Scanner(System.in);
@@ -127,7 +130,7 @@ public class Main {
                 case 6:
                     System.out.println();
                     System.out.println("Inserisci i dati per esportare su un file i corsi disponibili");
-                    System.out.print("Indica il file (Inserisci percorso del file, il file deve essere vuoto): ");
+                    System.out.print("Indica il file dove esportare i corsi disponibili (percorso del file assoluto): ");
                     String filePathDoveEsportareCorsiDisponibili = scanner.next();
 
                     System.out.println();
@@ -150,7 +153,7 @@ public class Main {
 
                     System.out.println();
                     System.out.print(
-                            "Indica il file dove esportare le tue prenotazioni attuali (Inserisci percorso del file, il file deve essere vuoto): ");
+                            "Indica il file dove esportare le tue prenotazioni attuali (percorso del file assoluto): ");
                     String filePathDoveEsportarePrenotazioniUtente = scanner.nextLine();
 
                     System.out.println();

@@ -1,6 +1,9 @@
 package com.incudo.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -23,13 +26,9 @@ import com.incudo.repository.CorsoRepository;
 public class CorsoServiceImpl implements CorsoService {
 
 
-	private PrenotazioneService prenotazioneService = new PrenotazioneServiceImpl();
-
-
-	private CorsoRepository corsoRepository = new CorsoRepositoryImpl();
-
-
-	private UtenteService utenteService = new UtenteServiceImpl();
+	private final PrenotazioneService prenotazioneService = new PrenotazioneServiceImpl();
+	private final CorsoRepository corsoRepository = new CorsoRepositoryImpl();
+	private final UtenteService utenteService = new UtenteServiceImpl();
 	
 	
 	
@@ -140,65 +139,71 @@ public class CorsoServiceImpl implements CorsoService {
 		}
 
 	}
-	
 
-	
+
+
 	@Override
 	public void prenotaCorso(int idCorso, int idUtente) throws IOException, InterruptedException {
-		
-		
-	    List<Corso> corsi = listaCorsi(ConfigurazioneFile.filePathCorsi, ConfigurazioneFile.delimitatore);
-	    
-	    List<Prenotazione> prenotazioni = prenotazioneService
-	            .listaPrenotazioni(ConfigurazioneFile.filePathPrenotazioni, ConfigurazioneFile.delimitatore);
-	    
-	    List<Utente> utenti = utenteService.listaUtenti(ConfigurazioneFile.filePathUtenti, ConfigurazioneFile.delimitatore);
 
-	    
-	    Optional<Corso> corsoDaPrenotare = corsi.stream().filter(corso -> corso.getId() == idCorso).findFirst();
-	    
-	    Optional<Utente> utentePrenotante = utenti.stream().filter(utente -> utente.getId() == idUtente).findFirst();
+		List<Corso> corsi = listaCorsi(ConfigurazioneFile.filePathCorsi, ConfigurazioneFile.delimitatore);
 
-	    
-	    
-	    if (corsoDaPrenotare.isPresent() && corsoDaPrenotare.get().getDisponibile().equalsIgnoreCase("SI") && utentePrenotante.isPresent()) {
-	    	
-	        int prossimoId = prenotazioneService.trovaProssimoIdPrenotazione(prenotazioni);
+		List<Prenotazione> prenotazioni = prenotazioneService
+				.listaPrenotazioni(ConfigurazioneFile.filePathPrenotazioni, ConfigurazioneFile.delimitatore);
 
-	        Prenotazione nuovaPrenotazione = new Prenotazione();
-	        nuovaPrenotazione.setId(prossimoId);
-	        nuovaPrenotazione.setIdAttività(idCorso);
-	        nuovaPrenotazione.setIdUtente(idUtente);
-	        LocalDate oggi = LocalDate.now();
-	        LocalDate dataFine = oggi.plusDays(7);
+		List<Utente> utenti = utenteService.listaUtenti(ConfigurazioneFile.filePathUtenti, ConfigurazioneFile.delimitatore);
 
-	        nuovaPrenotazione.setDataInizio(oggi);
-	        nuovaPrenotazione.setDataFine(dataFine);
+		Optional<Corso> corsoDaPrenotare = corsi.stream().filter(corso -> corso.getId() == idCorso).findFirst();
+		Optional<Utente> utentePrenotante = utenti.stream().filter(utente -> utente.getId() == idUtente).findFirst();
 
-	        corsoDaPrenotare.get().setDisponibile("NO");
+		if (utentePrenotante.isEmpty()) {
+			System.out.println();
+			System.out.println("ID utente non valido. La prenotazione non può essere effettuata.");
+			return;
+		}
 
-	        scriviCorsiSuCsv(corsi, ConfigurazioneFile.filePathCorsi, ConfigurazioneFile.delimitatore);
+		if (corsoDaPrenotare.isEmpty()) {
+			System.out.println();
+			System.out.println("ID del corso non valido. La prenotazione non può essere effettuata.");
+			return;
+		}
 
-	        prenotazioni.add(nuovaPrenotazione);
+		if (!corsoDaPrenotare.get().getDisponibile().equalsIgnoreCase("SI")) {
+			System.out.println();
+			System.out.println("Il corso non è disponibile per la prenotazione. La prenotazione non può essere effettuata.");
+			return;
+		}
 
-	        prenotazioneService.scriviPrenotazioniSuCsv(prenotazioni, ConfigurazioneFile.filePathPrenotazioni,
-	                ConfigurazioneFile.delimitatore);
+		int prossimoId = prenotazioneService.trovaProssimoIdPrenotazione(prenotazioni);
 
-	        String nomeUtente = utentePrenotante.get().getNome();
-	        int idPrenotazione = nuovaPrenotazione.getId();
+		Prenotazione nuovaPrenotazione = new Prenotazione();
+		nuovaPrenotazione.setId(prossimoId);
+		nuovaPrenotazione.setIdAttività(idCorso);
+		nuovaPrenotazione.setIdUtente(idUtente);
+		LocalDate oggi = LocalDate.now();
+		LocalDate dataFine = oggi.plusDays(7);
 
-	        System.out.println();
-	        System.out.println(nomeUtente + " la tua prenotazione è avvenuta con successo!");
-	        System.out.println("ID della tua prenotazione: " + idPrenotazione); 
-	    } 
-	    else {
-	        System.out.println();
-	        System.out.println("Il corso non è disponibile per la prenotazione, ID del corso o dell'utente non valido.");
-	    }
+		nuovaPrenotazione.setDataInizio(oggi);
+		nuovaPrenotazione.setDataFine(dataFine);
+
+		corsoDaPrenotare.get().setDisponibile("NO");
+
+		scriviCorsiSuCsv(corsi, ConfigurazioneFile.filePathCorsi, ConfigurazioneFile.delimitatore);
+
+		prenotazioni.add(nuovaPrenotazione);
+
+		prenotazioneService.scriviPrenotazioniSuCsv(prenotazioni, ConfigurazioneFile.filePathPrenotazioni,
+				ConfigurazioneFile.delimitatore);
+
+		String nomeUtente = utentePrenotante.get().getNome();
+		int idPrenotazione = nuovaPrenotazione.getId();
+
+		System.out.println();
+		System.out.println(nomeUtente + " la tua prenotazione è avvenuta con successo!");
+		System.out.println("ID della tua prenotazione: " + idPrenotazione);
 	}
 
-	
-	
+
+
 	@Override
 	public void scriviCorsiSuCsv(List<Corso> corsi, String filePath, char delimitatore)
 			throws InterruptedException {
@@ -235,46 +240,59 @@ public class CorsoServiceImpl implements CorsoService {
 	    }
 	}
 
-	
-	
-	
+
+
 	@Override
-	public void disdiciPrenotazioneERipristinaCorso(int idPrenotazione, int idCorso, int idUtente) throws IOException, InterruptedException {
-		
-	    List<Prenotazione> prenotazioni = prenotazioneService.listaPrenotazioni(ConfigurazioneFile.filePathPrenotazioni, ConfigurazioneFile.delimitatore);
+	public void disdiciPrenotazioneERipristinaCorso(int idPrenotazione, int idCorso, int idUtente) throws IOException {
 
-	    List<Utente> utenti = utenteService.listaUtenti(ConfigurazioneFile.filePathUtenti, ConfigurazioneFile.delimitatore);
-	    
-	    
-	    Optional<Utente> utentePrenotante = utenti.stream().filter(utente -> utente.getId() == idUtente).findFirst();
-	    
-	    Optional<Prenotazione> prenotazioneDaCancellare = prenotazioni.stream()
-	            .filter(prenotazione -> prenotazione.getId() == idPrenotazione && prenotazione.getIdAttività() == idCorso && prenotazione.getIdUtente() == idUtente)
-	            .findFirst();
+		List<Prenotazione> prenotazioni = prenotazioneService.listaPrenotazioni(ConfigurazioneFile.filePathPrenotazioni, ConfigurazioneFile.delimitatore);
 
-	    String nomeUtente = utentePrenotante.get().getNome();
-	    
-	    
-	    if (prenotazioneDaCancellare.isPresent()) {
-	        prenotazioni.remove(prenotazioneDaCancellare.get());
+		List<Utente> utenti = utenteService.listaUtenti(ConfigurazioneFile.filePathUtenti, ConfigurazioneFile.delimitatore);
 
-	        prenotazioneService.scriviPrenotazioniSuCsv(prenotazioni, ConfigurazioneFile.filePathPrenotazioni, ConfigurazioneFile.delimitatore);
+		Optional<Utente> utentePrenotante = utenti.stream().filter(utente -> utente.getId() == idUtente).findFirst();
 
-	        int idCorsoAssociato = prenotazioneDaCancellare.get().getIdAttività();
+		if (utentePrenotante.isPresent()) {
+			utentePrenotante.ifPresent(utente -> {
+				String nomeUtente = utente.getNome();
 
-	        ripristinaDisponibilitaCorso(idCorsoAssociato);
+				Optional<Prenotazione> prenotazioneDaCancellare = prenotazioni.stream()
+						.filter(prenotazione -> prenotazione.getId() == idPrenotazione && prenotazione.getIdAttività() == idCorso && prenotazione.getIdUtente() == idUtente)
+						.findFirst();
 
-	        System.out.println();
-	        System.out.println(nomeUtente + " hai cancellato la prenotazione con successo");
-	    } 
-	    else {
-	    	System.out.println();
-	        System.out.println("Prenotazione non trovata o ID non valido.");
-	    }
+				if (prenotazioneDaCancellare.isPresent()) {
+					prenotazioni.remove(prenotazioneDaCancellare.get());
+
+					try {
+						prenotazioneService.scriviPrenotazioniSuCsv(prenotazioni, ConfigurazioneFile.filePathPrenotazioni, ConfigurazioneFile.delimitatore);
+					}
+					catch (IOException | InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+
+                    int idCorsoAssociato = prenotazioneDaCancellare.get().getIdAttività();
+
+					try {
+						ripristinaDisponibilitaCorso(idCorsoAssociato);
+					}
+					catch (IOException | InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+
+                    System.out.println();
+					System.out.println(nomeUtente + " hai cancellato la prenotazione con successo");
+				} else {
+					System.out.println();
+					System.out.println("Prenotazione non trovata o ID non valido.");
+				}
+			});
+		} else {
+			System.out.println();
+			System.out.println("Utente non trovato con l'ID specificato.");
+		}
 	}
-	
-	
-	
+
+
+
 	@Override
 	public List<Corso> getCorsiDisponibili() throws IOException {
 		
@@ -285,34 +303,35 @@ public class CorsoServiceImpl implements CorsoService {
 	            .collect(Collectors.toList());
 	}
 
-	
+
 	@Override
 	public void esportaCorsiDisponibiliSuCsv(String filePath, char delimitatore) {
-
 		try {
+			Path path = Paths.get(filePath);
+			if (!Files.exists(path) || !Files.isWritable(path)) {
+				System.out.println();
+				System.out.println("Percorso non valido o non scrivibile.");
+				return;
+			}
+
 			List<Corso> corsiDisponibili = getCorsiDisponibili();
 
 			if (corsiDisponibili.isEmpty()) {
-
 				System.out.println();
-				System.out.println("Non ci sono corsi disponibili ");
-			} 
-			else {
-
+				System.out.println("Non ci sono corsi disponibili");
+			} else {
 				corsoRepository.esportaCorsiDisponibiliSuCsv(corsiDisponibili, filePath, delimitatore);
-
 				System.out.println();
 				System.out.println("Esportazione dei corsi disponibili completata con successo!");
 			}
-		} 
-		catch (IOException e) {
-
+		} catch (IOException e) {
 			System.out.println();
 			System.out.println("Errore durante l'esportazione dei corsi disponibili");
 		}
 	}
 
-	
+
+
 	@Override
 	public void reimpostaDisponibilitaCorsi(List<Integer> idCorsi) throws IOException, InterruptedException {
 		

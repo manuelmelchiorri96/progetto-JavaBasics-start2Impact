@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 
 import com.incudo.repository.UtenteRepositoryImpl;
@@ -18,7 +19,7 @@ import com.incudo.repository.UtenteRepository;
 public class UtenteServiceImpl implements UtenteService {
 
 
-	private UtenteRepository utenteRepository = new UtenteRepositoryImpl();
+	private final UtenteRepository utenteRepository = new UtenteRepositoryImpl();
 	
 	
 	
@@ -80,51 +81,59 @@ public class UtenteServiceImpl implements UtenteService {
 
 	@Override
 	public void inserisciNuovoUtente(int id, String nome, String cognome, String dataDiNascita, String indirizzo, String documentoId, String filePath, char delimitatore) throws IOException {
+		try {
+			Integer.parseInt(String.valueOf(id));
+		}
+		catch (InputMismatchException | NumberFormatException e) {
+			System.out.println();
+			System.out.println("L'ID deve essere un numero.");
+			return;
+		}
 
-	    if (nome.isEmpty() || cognome.isEmpty() || dataDiNascita.isEmpty() || indirizzo.isEmpty() || documentoId.isEmpty()) {
-	    	System.out.println();
-	        System.out.println("Tutti i campi devono essere compilati.");
-	        return;
-	    }
 
-	    List<Utente> utenti = listaUtenti(filePath, delimitatore);
+		if (nome.isEmpty() || cognome.isEmpty() || dataDiNascita.isEmpty() || indirizzo.isEmpty() || documentoId.isEmpty()) {
+			System.out.println();
+			System.out.println("Tutti i campi devono essere compilati.");
+			return;
+		}
 
-	    
-	    boolean idEsistente = utenti.stream().anyMatch(utente -> utente.getId() == id);
+		List<Utente> utenti = listaUtenti(filePath, delimitatore);
 
-	    if (idEsistente) {
-	    	System.out.println();
-	        System.out.println("L'ID specificato è già in uso da un altro utente. Scegli un altro ID.");
-	        return;
-	    }
+		boolean idEsistente = utenti.stream().anyMatch(utente -> utente.getId() == id);
 
-	    Utente nuovoUtente = new Utente();
-	    nuovoUtente.setId(id);
+		if (idEsistente) {
+			System.out.println();
+			System.out.println("L'ID specificato è già in uso da un altro utente. Scegli un altro ID.");
+			return;
+		}
 
-	    try {
-	        nuovoUtente.setDataDiNascita(LocalDate.parse(dataDiNascita, DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-	    } 
-	    catch (DateTimeParseException e) {
-	        System.out.println();
-	        System.out.println("Formato data non valido. Assicurati di inserire la data nel formato corretto.");
-	        return;
-	    }
+		Utente nuovoUtente = new Utente();
+		nuovoUtente.setId(id);
 
-	    nuovoUtente.setNome(nome);
-	    nuovoUtente.setCognome(cognome);
-	    nuovoUtente.setIndirizzo(indirizzo);
-	    nuovoUtente.setDocumentoId(documentoId);
+		try {
+			nuovoUtente.setDataDiNascita(LocalDate.parse(dataDiNascita, DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+		}
+		catch (DateTimeParseException e) {
+			System.out.println();
+			System.out.println("Formato data non valido. Assicurati di inserire la data nel formato corretto.");
+			return;
+		}
 
-	    utenti.add(nuovoUtente);
+		nuovoUtente.setNome(nome);
+		nuovoUtente.setCognome(cognome);
+		nuovoUtente.setIndirizzo(indirizzo);
+		nuovoUtente.setDocumentoId(documentoId);
 
-	    utenteRepository.scriviUtentiSuCsv(utenti, filePath, delimitatore);
+		utenti.add(nuovoUtente);
 
-	    System.out.println();
-	    System.out.println(nome + ", la tua registrazione è stata completata con successo!");
+		utenteRepository.scriviUtentiSuCsv(utenti, filePath, delimitatore);
+
+		System.out.println();
+		System.out.println(nome + ", la tua registrazione è stata completata con successo!");
 	}
 
 
-    @Override
+	@Override
 	public void eliminaUtente(int idUtente, String filePath, char delimitatore) throws IOException {
 		
 	    List<Utente> utenti = listaUtenti(filePath, delimitatore);
