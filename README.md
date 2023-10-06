@@ -85,7 +85,12 @@ mvn clean package
 
 Puoi eseguire l'applicazione utilizzando il file JAR creato con il seguente comando:
 
+**Attenzione:** Questo jar è progettato per essere eseguito solo dalla directory del progetto.
+
+Assicurati di essere nella directory principale del progetto prima di eseguirlo per garantire il corretto funzionamento.
+
 Assicurati di sostituire NOME-DEL-TUO-JAR con il nome effettivo del file JAR creato.
+
 
 ```bash
 java -jar target/NOME-DEL-TUO-JAR.jar
