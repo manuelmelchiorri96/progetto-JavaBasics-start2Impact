@@ -69,7 +69,7 @@ git clone https://github.com/manuelmelchiorri96/progetto-JavaBasics-start2Impact
 
 ## Eseguire l'applicazione da terminale
 
-### Eseguire l'applicazione con un file JAR
+### Eseguire l'applicazione con un file JAR nella directory del progetto
 
 **1. Crea il file JAR:**
 
@@ -85,15 +85,26 @@ mvn clean package
 
 Puoi eseguire l'applicazione utilizzando il file JAR creato con il seguente comando:
 
-**Attenzione:** Questo jar è progettato per essere eseguito solo dalla directory del progetto.
-
 Assicurati di essere nella directory principale del progetto prima di eseguirlo per garantire il corretto funzionamento.
 
-Assicurati di sostituire NOME-DEL-TUO-JAR con il nome effettivo del file JAR creato.
+Assicurati di sostituire NOME-DEL-JAR con il nome effettivo del file JAR creato.
+
+```bash
+java -jar target/NOME-DEL-JAR.jar
+```
+
+
+### Eseguire applicazione con un file JAR in una directory diversa dal progetto
+
+**1. Eseguire il seguente comando:**
+
+Per eseguire l' applicazione, basta digitare il seguente comando, l' applicazione farà riferimento a dei file presenti nella directory corrente.
+
+**Attenzione**: Questo jar è progettato per essere eseguito solo in una directory contenente i file con questo percorso: src/main/resources/nomeFile.csv
 
 
 ```bash
-java -jar target/NOME-DEL-TUO-JAR.jar
+java -jar NOME-DEL-JAR.jar
 ```
 
 
@@ -114,7 +125,7 @@ Successivamente esegui il seguente comando per eseguire l'applicazione:
 Sostituisci "com.example.Main" con il nome completo del package e della classe Java che desideri eseguire.
 
 ```bash
-mvn exec:java -Dexec.mainClass="com.example.Main"
+mvn exec:java -Dexec.mainClass="com.incudo.Main"
 ```
 
 ## Licenza
